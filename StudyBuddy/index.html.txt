@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+
+    <!-- Adaptación móvil -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Apariencia tipo app -->
+    <meta name="theme-color" content="#2563eb">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="StudyBuddy">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+
+    <title>StudyBuddy - Organizador Escolar</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f3f4f6;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 { 
+            text-align: center; 
+            margin-top: 0;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            padding-bottom: 120px;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            border-radius: 6px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            padding: 12px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            width: 100%;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        button:hover { background: #1d4ed8; }
+
+        /* ======= TAREAS ======= */
+        .task {
+            background: #e5e7eb;
+            padding: 14px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            font-size: 15px;
+        }
+
+        .done {
+            text-decoration: line-through;
+            opacity: 0.7;
+        }
+
+        /* ======= CALENDARIO ======= */
+        .calendar {
+            margin-top: 30px;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .day-name {
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .day {
+            height: 70px;
+            padding: 5px;
+            background: #f9fafb;
+            border-radius: 6px;
+            text-align: right;
+            position: relative;
+            cursor: pointer;
+            border: 1px solid #e5e7eb;
+            transition: 0.2s;
+        }
+
+        .day:hover { background: #eef2ff; }
+
+        .with-task::after {
+            content: "";
+            width: 8px;
+            height: 8px;
+            background: #2563eb;
+            border-radius: 50%;
+            position: absolute;
+            bottom: 6px;
+            left: 6px;
+        }
+
+        .selected {
+            background: #dbeafe !important;
+            border: 2px solid #2563eb;
+        }
+
+        .today {
+            border: 2px solid #1e40af;
+            background: #bfdbfe;
+            color: #0f172a;
+            font-weight: bold;
+        }
+
+        .section { display: none; }
+        .active { display: block; }
+
+        /* ===== MENU INFERIOR ===== */
+        .bottom-menu {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: white;
+            border-top: 2px solid #e5e7eb;
+            display: flex;
+            justify-content: space-around;
+            padding: 14px 0;
+            z-index: 1000;
+        }
+
+        .bottom-menu button {
+            background: none;
+            color: #2563eb;
+            font-size: 18px;
+            border: none;
+        }
+
+        /* ======== RESPONSIVE MEJORADO ======== */
+        @media (max-width: 600px) {
+            body {
+                padding: 0;
+                background: white;
+                font-size: 16px;
+            }
+
+            h1 {
+                background: #2563eb;
+                color: white;
+                padding: 16px;
+                font-size: 24px;
+            }
+
+            .container {
+                border-radius: 0;
+                padding: 15px;
+                padding-bottom: 150px;
+            }
+
+            .day {
+                height: 50px;
+                font-size: 14px;
+                padding: 4px;
+            }
+
+            .task {
+                font-size: 15px;
+                padding: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<h1>📚 StudyBuddy</h1>
+
+<div class="container">
+
+    <!-- ===== TAREAS ===== -->
+    <div id="tasks-section" class="section active">
+        <h2>➕ Agregar Tarea</h2>
+        <input type="text" id="taskText" placeholder="Descripción de la tarea">
+        <input type="date" id="taskDate">
+        <button onclick="addTask()">Agregar tarea</button>
+
+        <h2>📋 Todas las tareas</h2>
+        <div id="taskList"></div>
+    </div>
+
+    <!-- ===== CALENDARIO ===== -->
+    <div id="calendar-section" class="section">
+        <div class="calendar">
+            <div class="calendar-header">
+                <button onclick="prevMonth()">◀</button>
+                <h2 id="monthName"></h2>
+                <button onclick="nextMonth()">▶</button>
+            </div>
+
+            <div class="calendar-grid" id="calendarGrid"></div>
+        </div>
+
+        <h2>📅 Tareas del día seleccionado</h2>
+        <div id="dailyTasks"></div>
+    </div>
+
+    <!-- ===== NOTAS ===== -->
+    <div id="notes-section" class="section">
+        <h2>📝 Notas rápidas</h2>
+        <textarea id="notes" rows="6" placeholder="Escribe aquí tus notas..."></textarea>
+        <button onclick="saveNotes()">Guardar notas</button>
+    </div>
+
+</div>
+
+<!-- MENÚ INFERIOR -->
+<div class="bottom-menu">
+    <button onclick="showSection('tasks')">Tareas</button>
+    <button onclick="showSection('calendar')">Calendario</button>
+    <button onclick="showSection('notes')">Notas</button>
+</div>
+
+<script>
+/* ========= SECCIONES ========= */
+function showSection(section) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+
+    if (section === "tasks") 
+        document.getElementById("tasks-section").classList.add("active");
+    else if (section === "calendar") 
+        document.getElementById("calendar-section").classList.add("active");
+    else 
+        document.getElementById("notes-section").classList.add("active");
+}
+
+/* ========= TAREAS ========= */
+function getTasks() {
+    return JSON.parse(localStorage.getItem("tasks")) || [];
+}
+
+function saveTasks(tasks) {
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+}
+
+function addTask() {
+    const text = document.getElementById("taskText").value;
+    const date = document.getElementById("taskDate").value;
+
+    if (!text || !date)
+        return alert("Completa ambos campos");
+
+    const tasks = getTasks();
+    tasks.push({ text, date, done: false });
+    saveTasks(tasks);
+
+    loadTasks();
+    loadCalendar();
+}
+
+function loadTasks() {
+    const tasks = getTasks();
+    const container = document.getElementById("taskList");
+    container.innerHTML = "";
+
+    tasks.forEach(t => {
+        container.innerHTML += `
+            <div class="task ${t.done ? 'done' : ''}">
+                <span>${t.text} - ${t.date}</span>
+            </div>
+        `;
+    });
+}
+
+/* ========= CALENDARIO ========= */
+let currentMonth = new Date().getMonth();
+let currentYear = new Date().getFullYear();
+let selectedDate = null;
+
+const monthNames = [
+    "Enero","Febrero","Marzo","Abril","Mayo","Junio",
+    "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"
+];
+
+function getTasksByDate(date) {
+    return getTasks().filter(t => t.date === date);
+}
+
+function loadCalendar() {
+    const grid = document.getElementById("calendarGrid");
+    grid.innerHTML = "";
+
+    document.getElementById("monthName").textContent =
+        monthNames[currentMonth] + " " + currentYear;
+
+    const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+    const today = new Date();
+    const todayDate = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+
+    const dayNames = ["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"];
+    dayNames.forEach(n => {
+        const div = document.createElement("div");
+        div.className = "day-name";
+        div.textContent = n;
+        grid.appendChild(div);
+    });
+
+    let offset = firstDay === 0 ? 6 : firstDay - 1;
+
+    for (let i = 0; i < offset; i++)
+        grid.appendChild(document.createElement("div"));
+
+    for (let day = 1; day <= daysInMonth; day++) {
+        const fullDate = `${currentYear}-${String(currentMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+        const tasksForDay = getTasksByDate(fullDate);
+
+        const d = document.createElement("div");
+        d.className = "day";
+        d.textContent = day;
+
+        if (fullDate === todayDate) {
+            d.classList.add("today");
+        }
+
+        if (tasksForDay.length > 0)
+            d.classList.add("with-task");
+
+        d.onclick = () => selectDay(d, fullDate);
+
+        grid.appendChild(d);
+    }
+}
+
+function selectDay(element, date) {
+    selectedDate = date;
+
+    document.querySelectorAll(".day")
+        .forEach(d => d.classList.remove("selected"));
+
+    element.classList.add("selected");
+    loadTasksForSelectedDate();
+}
+
+function loadTasksForSelectedDate() {
+    const container = document.getElementById("dailyTasks");
+    container.innerHTML = "";
+
+    const tasks = getTasksByDate(selectedDate);
+
+    if (tasks.length === 0) {
+        container.innerHTML = "<p>No hay tareas</p>";
+        return;
+    }
+
+    tasks.forEach(t => {
+        container.innerHTML += `
+            <div class="task">
+                <span>${t.text}</span>
+            </div>
+        `;
+    });
+}
+
+/* ========= NOTAS ========= */
+function saveNotes() {
+    localStorage.setItem("notes", document.getElementById("notes").value);
+}
+
+function loadNotes() {
+    document.getElementById("notes").value = localStorage.getItem("notes") || "";
+}
+
+/* ========= INICIO ========= */
+loadTasks();
+loadCalendar();
+loadNotes();
+
+</script>
+
+</body>
+</html>
